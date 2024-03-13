@@ -1,3 +1,6 @@
+###This code is implemented simply for selecting the first N samples from  DENV_genomes.fasta and DENV_serotypes.csv
+
+
 import csv
 from Bio import SeqIO
 
