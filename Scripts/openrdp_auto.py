@@ -64,35 +64,40 @@ def stratified_sampling(N, fasta_alignment, csv_stratum):
     return output_file_name
 
 @python_app
-def perform_inference(sampled_fasta):
-    output_file = "alignment.fasta"
+def perform_inference(sampled_fasta, sample_size):
+    output_file = f"alignment.fasta_{sample_size}"
     alignment_file = perform_alignment(sampled_fasta, threads=2, output_file=output_file).result()
     print(f'Alignment output status----->{alignment_file}\n')
     alignment_file=output_file
-    outfile='openrdp_results'
+    outfile= f"openrdp_results_{sample_size}"
     recombination_output = infer_recombination(alignment_file, output_file=outfile).result()
     
 def main():
-    start_time = time.time()
-
-    N = 8
-    fasta_alignment = "/home/hugodpo/Documents/LABINFO/Codigos/DENV_genomes.fasta"
-    csv_stratum = "/home/hugodpo/Documents/LABINFO/Codigos/DENV_serotypes.csv"
-    openrdp_results = "/home/hugodpo/Documents/LABINFO/Codigos/openrdp_results"
+    N = 4
+    fasta_alignment = "/home/hugodpo/OpenRDP/DENV_genomes.fasta"
+    csv_stratum = "/home/hugodpo/OpenRDP/DENV_serotypes.csv"
+    openrdp_results = f"/home/hugodpo/OpenRDP/openrdp_results_{N}"
 
     sampled_fasta = stratified_sampling(N, fasta_alignment, csv_stratum)
 
     if not os.path.exists(sampled_fasta):
         print(f"Error: Sampled FASTA file '{sampled_fasta}' does not exist.")
-    
-    inference_result = perform_inference(sampled_fasta).result()
+   
+    start_time = time.time()
+
+    inference_result = perform_inference(sampled_fasta, N).result()
     
     end_time = time.time()
     execution_time = int(end_time - start_time)
     
+    with open(openrdp_results, 'r+') as f:
+        content = f.read()
+        f.seek(0, 0)
+        f.write(f"• Total time of OpenRDP execution with N = {N}: {execution_time} s\n" + content)
+
     print("-------------------------------------------------------------")
-    print("\n• Alignment of selected sequences was saved on 'aligned.fasta'")
-    print("\n• Results of openrdp inference were saved on 'openrdp_results'")
-    print(f"\n• Total time of execution with N = {N}:", execution_time, "s\n")
+    print(f"\n• Alignment of selected sequences was saved on 'aligned.fasta_{N}'")
+    print(f"\n• Results of openrdp inference were saved on 'openrdp_results_{N}'")
+    print(f"\n• Total time of OpenRDP execution with N = {N}:", execution_time, "s\n")
 
 main()
